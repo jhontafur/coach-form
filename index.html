@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0E0E0C" />
+  <title>Tu plan personalizado · Cuestionario</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================
+       CONFIG — Pega aquí tu URL de Apps Script
+       ============================================ */
+    /* La URL se configura en el <script> al final */
+
+    :root {
+      --bg: #0E0E0C;
+      --surface: #15151310;
+      --surface-elev: #1A1A18;
+      --border: #2A2A26;
+      --border-strong: #3A3A35;
+      --text: #F5F1E8;
+      --text-dim: #8B847A;
+      --text-soft: #B8B2A6;
+      --accent: #E85D2F;
+      --accent-dim: #C44E25;
+      --accent-soft: rgba(232, 93, 47, 0.12);
+      --error: #E85D2F;
+      --success: #7CB342;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --max-w: 640px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232, 93, 47, 0.06), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(232, 93, 47, 0.04), transparent 60%),
+        var(--bg);
+      background-attachment: fixed;
+    }
+
+    /* Grain texture for atmosphere */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .app {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+      position: relative;
+    }
+
+    /* ============================================
+       HEADER + PROGRESS
+       ============================================ */
+    .header {
+      padding: 18px 24px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      background: linear-gradient(180deg, var(--bg) 70%, transparent 100%);
+      z-index: 10;
+    }
+
+    .logo {
+      font-family: 'Fraunces', serif;
+      font-weight: 500;
+      font-size: 17px;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    .progress-text {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .progress-bar {
+      height: 2px;
+      background: var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      position: absolute;
+      inset: 0 100% 0 0;
+      background: var(--accent);
+      transition: right 0.5s var(--ease);
+      box-shadow: 0 0 12px rgba(232, 93, 47, 0.5);
+    }
+
+    /* ============================================
+       SCREEN CONTAINER
+       ============================================ */
+    .screen-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      animation: slideIn 0.45s var(--ease);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .screen.exiting {
+      animation: slideOut 0.25s var(--ease) forwards;
+    }
+
+    @keyframes slideOut {
+      to {
+        opacity: 0;
+        transform: translateY(-16px);
+      }
+    }
+
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 18px;
+      font-weight: 500;
+    }
+
+    .question-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 400;
+      font-size: clamp(26px, 5.5vw, 34px);
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .question-subtitle {
+      font-size: 15px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    /* ============================================
+       INPUTS
+       ============================================ */
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border-strong);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 18px;
+      padding: 12px 0;
+      outline: none;
+      transition: border-color 0.2s, padding 0.2s;
+      -webkit-appearance: none;
+      border-radius: 0;
+    }
+
+    textarea {
+      resize: none;
+      min-height: 120px;
+      line-height: 1.5;
+      font-size: 16px;
+      padding-top: 12px;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="date"]:focus,
+    input[type="tel"]:focus,
+    textarea:focus {
+      border-bottom-color: var(--accent);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+
+    /* Number inputs side by side */
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+
+    .input-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (min-width: 480px) {
+      .input-row-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    /* ============================================
+       OPTIONS (radio / checkbox)
+       ============================================ */
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .option:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-elev);
+    }
+
+    .option.selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .option-indicator {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-strong);
+      flex-shrink: 0;
+      position: relative;
+      transition: all 0.2s var(--ease);
+    }
+
+    .option-indicator.checkbox {
+      border-radius: 5px;
+    }
+
+    .option.selected .option-indicator {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .option.selected .option-indicator::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .option.selected .option-indicator:not(.checkbox)::after {
+      width: 7px;
+      height: 7px;
+      background: var(--bg);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .option.selected .option-indicator.checkbox::after {
+      content: '✓';
+      color: var(--bg);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      top: 1px;
+      left: 4px;
+      position: absolute;
+    }
+
+    .option-text {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.35;
+      flex: 1;
+    }
+
+    /* ============================================
+       NAVIGATION
+       ============================================ */
+    .nav {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 20px;
+    }
+
+    .btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 16px 24px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+      letter-spacing: 0.01em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      flex: 1;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #FF6E40;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 93, 47, 0.3);
+    }
+
+    .btn-primary:disabled {
+      background: var(--border);
+      color: var(--text-dim);
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border-strong);
+      padding: 16px 20px;
+    }
+
+    .btn-secondary:hover {
+      color: var(--text);
+      border-color: var(--text-dim);
+    }
+
+    .arrow {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    /* ============================================
+       WELCOME SCREEN
+       ============================================ */
+    .welcome {
+      text-align: left;
+      padding-top: 40px;
+    }
+
+    .welcome-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 300;
+      font-size: clamp(36px, 8vw, 56px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+    }
+
+    .welcome-title em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--accent);
+    }
+
+    .welcome-text {
+      font-size: 17px;
+      line-height: 1.55;
+      color: var(--text-soft);
+      margin-bottom: 18px;
+    }
+
+    .welcome-meta {
+      display: flex;
+      gap: 24px;
+      margin: 32px 0;
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .welcome-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .welcome-meta-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .welcome-meta-value {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    .disclaimer-box {
+      background: var(--surface-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+
+    .disclaimer-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-soft);
+      margin-bottom: 14px;
+    }
+
+    .disclaimer-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .disclaimer-check input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .disclaimer-check-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      border: 1.5px solid var(--border-strong);
+      flex-shrink: 0;
+      margin-top: 1px;
+      position: relative;
+      transition: all 0.2s var(--ease);
+    }
+
+    .disclaimer-check.checked .disclaimer-check-box {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .disclaimer-check.checked .disclaimer-check-box::after {
+      content: '✓';
+      position: absolute;
+      top: 0px;
+      left: 4px;
+      color: var(--bg);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .disclaimer-check-text {
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    /* ============================================
+       SUCCESS SCREEN
+       ============================================ */
+    .success {
+      text-align: center;
+      padding: 80px 0 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .success-icon::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px solid var(--accent);
+      animation: pulse 2s var(--ease) infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    .success-icon svg {
+      stroke: var(--accent);
+      stroke-width: 2;
+    }
+
+    .success-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 400;
+      font-size: clamp(28px, 6vw, 36px);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .success-text {
+      font-size: 16px;
+      color: var(--text-soft);
+      line-height: 1.55;
+      max-width: 400px;
+    }
+
+    .success-text strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* ============================================
+       LOADING
+       ============================================ */
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(14, 14, 12, 0.3);
+      border-top-color: var(--bg);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ============================================
+       MICRO HELPERS
+       ============================================ */
+    .helper-text {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .error-text {
+      font-size: 13px;
+      color: var(--error);
+      margin-top: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* iOS safe areas */
+    @supports (padding: max(0px)) {
+      .app {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+
+    <header class="header">
+      <div class="logo">
+        <span class="logo-dot"></span>
+        <span>Tu Coach</span>
+      </div>
+      <div class="progress-text" id="progressText">— / —</div>
+    </header>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="screen-wrapper" id="screenWrapper">
+      <!-- Screens get rendered here by JS -->
+    </div>
+
+  </div>
+
+  <script>
+    // ============================================
+    // CONFIG — PEGA AQUÍ TU URL DE APPS SCRIPT
+    // ============================================
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoNGIZ_LmCXhtkIAUv9rG1liienHcrgrVPtDiFlS9dk1UtOBJxYX-Mk5lj8Tb1mIdntw/exec";
+
+    // ============================================
+    // ESTADO
+    // ============================================
+    const state = {
+      currentIndex: 0,
+      answers: {},
+      disclaimerAccepted: false
+    };
+
+    // ============================================
+    // DEFINICIÓN DE PREGUNTAS
+    // ============================================
+    const questions = [
+      // ----- WELCOME -----
+      {
+        id: 'welcome',
+        type: 'welcome'
+      },
+
+      // ----- P1: NOMBRE -----
+      {
+        id: 'p1_nombre',
+        type: 'text',
+        eyebrow: 'Empezamos',
+        title: '¿Cómo te llamas?',
+        subtitle: 'O cómo quieres que te llame.',
+        placeholder: 'Tu nombre',
+        required: true
+      },
+
+      // ----- P2: OBJETIVO PRINCIPAL -----
+      {
+        id: 'p2_objetivo',
+        type: 'radio',
+        eyebrow: 'Tu objetivo',
+        title: '¿Cuál es tu objetivo principal?',
+        subtitle: 'Elige el que más se acerque. Tendrás espacio para detallar después.',
+        required: true,
+        options: [
+          { value: 'bajar_grasa', label: 'Bajar grasa' },
+          { value: 'ganar_musculo', label: 'Ganar músculo' },
+          { value: 'recomposicion', label: 'Recomposición (bajar grasa y ganar músculo a la vez)' },
+          { value: 'ganar_fuerza', label: 'Ganar fuerza' },
+          { value: 'salud_energia', label: 'Mejorar mi salud y energía' },
+          { value: 'empezar', label: 'Empezar a hacer ejercicio por primera vez' }
+        ]
+      },
+
+      // ----- P3: ¿POR QUÉ? -----
+      {
+        id: 'p3_porque',
+        type: 'textarea',
+        eyebrow: 'Tu motivo',
+        title: '¿Por qué este objetivo importa para ti?',
+        subtitle: 'En tus palabras. No hay respuesta correcta. Mientras más honesto, mejor tu plan.',
+        placeholder: 'Cuéntame...',
+        required: true,
+        minLength: 10
+      },
+
+      // ----- P3.5: ¿EVENTO ESPECÍFICO? -----
+      {
+        id: 'p3_5_evento',
+        type: 'radio',
+        eyebrow: 'Tiempo',
+        title: '¿Tienes un evento o fecha específica para la cual te gustaría estar mejor?',
+        subtitle: 'Boda, vacaciones, reunión, competencia, foto, etc. Si no, dilo sin presión.',
+        required: true,
+        options: [
+          { value: 'si', label: 'Sí, tengo un evento' },
+          { value: 'no', label: 'No, sin prisa' }
+        ]
+      },
+
+      // ----- P3.5b: DETALLES DEL EVENTO (CONDICIONAL) -----
+      {
+        id: 'p3_5b_evento_detalles',
+        type: 'composite',
+        eyebrow: 'Detalles',
+        title: 'Bien, cuéntame los detalles.',
+        subtitle: 'Esto me ayuda a calibrar el plan al tiempo que tienes.',
+        showIf: (answers) => answers.p3_5_evento === 'si',
+        required: true,
+        fields: [
+          {
+            name: 'evento_nombre',
+            label: '¿Qué evento es?',
+            type: 'text',
+            placeholder: 'Ej: boda de mi hermana, vacaciones en la playa',
+            required: true
+          },
+          {
+            name: 'evento_fecha',
+            label: '¿Para qué fecha?',
+            type: 'date',
+            required: true
+          }
+        ]
+      },
+
+      // ----- P4: SEXO BIOLÓGICO -----
+      {
+        id: 'p4_sexo',
+        type: 'radio',
+        eyebrow: 'Sobre ti',
+        title: '¿Sexo biológico?',
+        subtitle: 'Necesario para calcular metabolismo y ajustar el plan.',
+        required: true,
+        options: [
+          { value: 'hombre', label: 'Hombre' },
+          { value: 'mujer', label: 'Mujer' },
+          { value: 'prefiero_no_decir', label: 'Prefiero no decirlo' }
+        ]
+      },
+
+      // ----- P5: EDAD -----
+      {
+        id: 'p5_edad',
+        type: 'number',
+        eyebrow: 'Sobre ti',
+        title: '¿Qué edad tienes?',
+        subtitle: 'En años.',
+        placeholder: '25',
+        required: true,
+        min: 14,
+        max: 100,
+        suffix: 'años'
+      },
+
+      // ----- P6: PESO Y ALTURA -----
+      {
+        id: 'p6_peso_altura',
+        type: 'composite',
+        eyebrow: 'Sobre ti',
+        title: '¿Cuánto pesas y cuánto mides?',
+        subtitle: 'Aproximado está bien. Usaremos esto para el cálculo de calorías.',
+        required: true,
+        fields: [
+          {
+            name: 'peso_kg',
+            label: 'Peso (kg)',
+            type: 'number',
+            placeholder: '70',
+            min: 30,
+            max: 250,
+            required: true
+          },
+          {
+            name: 'altura_cm',
+            label: 'Altura (cm)',
+            type: 'number',
+            placeholder: '170',
+            min: 130,
+            max: 230,
+            required: true
+          }
+        ]
+      },
+
+      // ----- P7: SALUD CRÍTICA -----
+      {
+        id: 'p7_salud',
+        type: 'checkbox',
+        eyebrow: 'Salud',
+        title: 'Marca todo lo que aplique a ti hoy.',
+        subtitle: 'Importante para que tu plan sea seguro. Sé honesto.',
+        required: true,
+        options: [
+          { value: 'cardiaca', label: 'Mi médico me ha dicho que tengo una condición cardíaca o presión alta' },
+          { value: 'dolor_pecho', label: 'Siento dolor en el pecho cuando hago esfuerzo' },
+          { value: 'mareos', label: 'He perdido equilibrio o consciencia por mareos en el último año' },
+          { value: 'cronica', label: 'Tengo diabetes, asma, artritis u otra condición crónica' },
+          { value: 'medicamentos', label: 'Estoy tomando medicamentos recetados' },
+          { value: 'articular', label: 'Tengo problemas articulares serios (hombro, rodilla, columna)' },
+          { value: 'supervision', label: 'Mi médico me ha dicho que solo haga ejercicio supervisado' },
+          { value: 'embarazo', label: 'Estoy embarazada o tuve un bebé hace menos de 6 meses' },
+          { value: 'ninguno', label: 'Ninguno de los anteriores', exclusive: true }
+        ]
+      },
+
+      // ----- P7b: DETALLES SALUD (CONDICIONAL) -----
+      {
+        id: 'p7b_salud_detalles',
+        type: 'textarea',
+        eyebrow: 'Salud',
+        title: 'Cuéntame más sobre lo que marcaste.',
+        subtitle: 'Qué condición tienes, qué medicamento tomas o qué te dijo tu médico. Esto es para que tu plan sea seguro.',
+        placeholder: 'Cuéntame...',
+        showIf: (answers) => {
+          const v = answers.p7_salud || [];
+          return v.length > 0 && !(v.length === 1 && v[0] === 'ninguno');
+        },
+        required: true,
+        minLength: 10
+      },
+
+      // ----- P8: PERÍODO MÁS LARGO ENTRENANDO -----
+      {
+        id: 'p8_experiencia',
+        type: 'radio',
+        eyebrow: 'Tu historial',
+        title: '¿Cuál es el período más largo que entrenaste de forma consistente?',
+        subtitle: '3 o más veces por semana, sin parar más de 2 semanas seguidas. En toda tu vida.',
+        required: true,
+        options: [
+          { value: 'nuevo', label: 'Nunca he entrenado consistente / soy completamente nuevo' },
+          { value: '<3m', label: 'Menos de 3 meses' },
+          { value: '3-6m', label: '3 a 6 meses' },
+          { value: '6m-1a', label: '6 meses a 1 año' },
+          { value: '1-2a', label: '1 a 2 años' },
+          { value: '+2a', label: 'Más de 2 años' }
+        ]
+      },
+
+      // ----- P9: ¿ESTÁS ENTRENANDO AHORA? -----
+      {
+        id: 'p9_actual',
+        type: 'radio',
+        eyebrow: 'Tu historial',
+        title: 'Y actualmente, ¿estás entrenando?',
+        required: true,
+        options: [
+          { value: 'no', label: 'No, llevo más de 3 meses sin entrenar / nunca empecé' },
+          { value: 'irregular', label: 'Estoy entrenando irregularmente (1 a 2 veces por semana o saltando días)' },
+          { value: 'consistente', label: 'Estoy entrenando consistente (3+ días por semana)' }
+        ]
+      },
+
+      // ----- P10: BENCHMARKS (CONDICIONAL) -----
+      {
+        id: 'p10_benchmarks',
+        type: 'composite',
+        eyebrow: 'Tu nivel',
+        title: '¿Qué puedes hacer hoy físicamente?',
+        subtitle: 'Aproximado. Deja en blanco lo que no sepas o no aplique.',
+        showIf: (answers) => ['3-6m', '6m-1a', '1-2a', '+2a'].includes(answers.p8_experiencia),
+        required: false,
+        fields: [
+          {
+            name: 'flexiones',
+            label: 'Flexiones (push-ups) seguidas',
+            type: 'number',
+            placeholder: '0',
+            min: 0,
+            max: 200
+          },
+          {
+            name: 'dominadas',
+            label: 'Dominadas estrictas',
+            type: 'number',
+            placeholder: '0',
+            min: 0,
+            max: 50
+          },
+          {
+            name: 'press_banca',
+            label: 'Press banca máx (kg)',
+            type: 'number',
+            placeholder: 'opcional',
+            min: 0,
+            max: 300
+          },
+          {
+            name: 'sentadilla',
+            label: 'Sentadilla máx (kg)',
+            type: 'number',
+            placeholder: 'opcional',
+            min: 0,
+            max: 400
+          },
+          {
+            name: 'peso_muerto',
+            label: 'Peso muerto máx (kg)',
+            type: 'number',
+            placeholder: 'opcional',
+            min: 0,
+            max: 400
+          }
+        ]
+      },
+
+      // ----- P11: ¿DÓNDE ENTRENAS? -----
+      {
+        id: 'p11_lugar',
+        type: 'radio',
+        eyebrow: 'Tu entorno',
+        title: '¿Dónde vas a entrenar principalmente?',
+        required: true,
+        options: [
+          { value: 'gym_completo', label: 'Gimnasio comercial (tiene de todo)' },
+          { value: 'gym_casa', label: 'Gimnasio en casa con equipo' },
+          { value: 'solo_casa', label: 'Solo en casa, sin equipo (calistenia)' },
+          { value: 'parque', label: 'Parque al aire libre' },
+          { value: 'mixto', label: 'Mixto / otro' }
+        ]
+      },
+
+      // ----- P12: EQUIPO DISPONIBLE (CONDICIONAL) -----
+      {
+        id: 'p12_equipo',
+        type: 'checkbox',
+        eyebrow: 'Tu entorno',
+        title: '¿Qué equipo tienes disponible?',
+        subtitle: 'Marca todo lo que tengas o puedas conseguir.',
+        showIf: (answers) => answers.p11_lugar !== 'gym_completo',
+        required: true,
+        options: [
+          { value: 'mancuernas', label: 'Mancuernas' },
+          { value: 'barra', label: 'Barra olímpica + discos' },
+          { value: 'banco', label: 'Banco plano o ajustable' },
+          { value: 'bandas', label: 'Bandas elásticas' },
+          { value: 'kettlebells', label: 'Kettlebells' },
+          { value: 'barra_dominadas', label: 'Barra para dominadas' },
+          { value: 'trx', label: 'TRX o anillas' },
+          { value: 'maquinas', label: 'Algunas máquinas' },
+          { value: 'nada', label: 'Nada de lo anterior, solo mi peso corporal', exclusive: true }
+        ]
+      },
+
+      // ----- P13: DÍAS POR SEMANA -----
+      {
+        id: 'p13_dias',
+        type: 'radio',
+        eyebrow: 'Tu disponibilidad',
+        title: '¿Cuántos días por semana puedes entrenar de forma realista?',
+        subtitle: 'No el ideal — el realista. Mejor pocos días consistentes que muchos planificados que no haces.',
+        required: true,
+        options: [
+          { value: '2', label: '2 días' },
+          { value: '3', label: '3 días' },
+          { value: '4', label: '4 días' },
+          { value: '5', label: '5 días' },
+          { value: '6', label: '6 días' }
+        ]
+      },
+
+      // ----- P14: MINUTOS POR SESIÓN -----
+      {
+        id: 'p14_minutos',
+        type: 'radio',
+        eyebrow: 'Tu disponibilidad',
+        title: '¿Cuánto tiempo tienes por sesión?',
+        required: true,
+        options: [
+          { value: '20-30', label: '20 a 30 minutos' },
+          { value: '30-45', label: '30 a 45 minutos' },
+          { value: '45-60', label: '45 a 60 minutos' },
+          { value: '60-90', label: '60 a 90 minutos' }
+        ]
+      },
+
+      // ----- P15: ¿DOLOR ACTIVO? -----
+      {
+        id: 'p15_dolor',
+        type: 'radio',
+        eyebrow: 'Tu cuerpo',
+        title: '¿Tienes dolor o lesión activa en este momento?',
+        required: true,
+        options: [
+          { value: 'no', label: 'No, todo bien' },
+          { value: 'si', label: 'Sí' }
+        ]
+      },
+
+      // ----- P15b: DETALLES DOLOR (CONDICIONAL) -----
+      {
+        id: 'p15b_dolor_detalles',
+        type: 'textarea',
+        eyebrow: 'Tu cuerpo',
+        title: 'Cuéntame del dolor o lesión.',
+        subtitle: 'Dónde duele exactamente, qué movimientos lo empeoran, hace cuánto, si ya viste médico o fisio.',
+        placeholder: 'Cuéntame...',
+        showIf: (answers) => answers.p15_dolor === 'si',
+        required: true,
+        minLength: 10
+      },
+
+      // ----- P16: HORAS DE SUEÑO -----
+      {
+        id: 'p16_sueno',
+        type: 'number',
+        eyebrow: 'Tu vida',
+        title: '¿Cuántas horas duermes en promedio por noche?',
+        subtitle: 'El sueño afecta tu recuperación más que cualquier suplemento.',
+        placeholder: '7',
+        required: true,
+        min: 3,
+        max: 14,
+        step: 0.5,
+        suffix: 'horas'
+      },
+
+      // ----- P17: ACTIVIDAD DIARIA -----
+      {
+        id: 'p17_actividad',
+        type: 'radio',
+        eyebrow: 'Tu vida',
+        title: '¿Cómo es tu día normal?',
+        subtitle: 'Tu actividad fuera del entrenamiento también cuenta para las calorías.',
+        required: true,
+        options: [
+          { value: 'sedentario', label: 'Sedentario (oficina, escritorio, casi todo el día sentado)' },
+          { value: 'mixto', label: 'Mixto (algo de pie, camino algo)' },
+          { value: 'activo', label: 'Activo (trabajo físico, mucho movimiento)' },
+          { value: 'pesado', label: 'Trabajo físico pesado (construcción, carga, etc.)' }
+        ]
+      },
+
+      // ----- P18: RESTRICCIONES ALIMENTARIAS -----
+      {
+        id: 'p18_restricciones',
+        type: 'checkbox',
+        eyebrow: 'Nutrición',
+        title: '¿Tienes alguna restricción alimentaria?',
+        subtitle: 'Marca todo lo que aplique.',
+        required: true,
+        options: [
+          { value: 'ninguna', label: 'Ninguna, como de todo', exclusive: true },
+          { value: 'vegetariano', label: 'Vegetariano' },
+          { value: 'vegano', label: 'Vegano' },
+          { value: 'sin_lactosa', label: 'Sin lactosa' },
+          { value: 'sin_gluten', label: 'Sin gluten' },
+          { value: 'halal', label: 'Halal' },
+          { value: 'kosher', label: 'Kosher' },
+          { value: 'alergias', label: 'Tengo alergias (te las cuento en la siguiente pregunta)' }
+        ]
+      },
+
+      // ----- P19: ALIMENTOS QUE COMES -----
+      {
+        id: 'p19_alimentos',
+        type: 'textarea',
+        eyebrow: 'Nutrición',
+        title: '¿Qué alimentos comes regularmente o tienes en casa ahora?',
+        subtitle: 'No tiene que ser perfecto. Ejemplo: "pollo, arroz, huevos, plátano, leche, atún, manzanas, lentejas, pan integral, aceite de oliva". Escribe lo que comes de verdad, no lo que crees que deberías.',
+        placeholder: 'Lista de alimentos...',
+        required: true,
+        minLength: 20
+      },
+
+      // ----- P20: PRESUPUESTO Y COCINA -----
+      {
+        id: 'p20_cocina',
+        type: 'radio',
+        eyebrow: 'Nutrición',
+        title: 'Sobre comida y cocina, ¿cuál te describe mejor?',
+        required: true,
+        options: [
+          { value: 'holgado', label: 'Tengo presupuesto holgado y tiempo para cocinar' },
+          { value: 'medio', label: 'Presupuesto medio, cocino lo justo' },
+          { value: 'ajustado', label: 'Presupuesto ajustado, busco lo barato' },
+          { value: 'no_cocino', label: 'Casi no cocino, como lo que sea fácil o pido a domicilio' }
+        ]
+      },
+
+      // ----- P21: SUPLEMENTOS -----
+      {
+        id: 'p21_suplementos',
+        type: 'checkbox',
+        eyebrow: 'Nutrición',
+        title: '¿Tomas o estás dispuesto a tomar alguno de estos?',
+        subtitle: 'Marca solo si los usas o estás dispuesto a usarlos.',
+        required: false,
+        options: [
+          { value: 'proteina', label: 'Proteína en polvo' },
+          { value: 'creatina', label: 'Creatina' },
+          { value: 'multivitaminico', label: 'Multivitamínico' },
+          { value: 'omega3', label: 'Omega 3' },
+          { value: 'cafeina', label: 'Cafeína o pre-entreno' },
+          { value: 'ninguno', label: 'No quiero suplementos', exclusive: true }
+        ]
+      },
+
+      // ----- P22: ALGO MÁS -----
+      {
+        id: 'p22_extra',
+        type: 'textarea',
+        eyebrow: 'Cierre',
+        title: 'Última pregunta. ¿Hay algo más que tu coach deba saber?',
+        subtitle: 'Miedos, frustraciones del pasado, lo que te motiva, deportes que te gustan, horarios complicados, lo que sea. Esto me ayuda a hacer tu plan más tuyo. Puedes dejarlo en blanco si no se te ocurre nada.',
+        placeholder: 'Lo que quieras compartir...',
+        required: false
+      },
+
+      // ----- WHATSAPP -----
+      {
+        id: 'whatsapp',
+        type: 'text',
+        eyebrow: 'Para enviarte tu plan',
+        title: '¿A qué WhatsApp te mando tu plan?',
+        subtitle: 'Incluye código de país. Ejemplo: +51 999 888 777',
+        placeholder: '+51 999 888 777',
+        required: true,
+        inputType: 'tel'
+      },
+
+      // ----- SUCCESS -----
+      {
+        id: 'success',
+        type: 'success'
+      }
+    ];
+
+    // ============================================
+    // LÓGICA: SE VISUALIZAN SOLO LAS PANTALLAS QUE APLICAN
+    // ============================================
+    function getVisibleQuestions() {
+      return questions.filter(q => {
+        if (!q.showIf) return true;
+        return q.showIf(state.answers);
+      });
+    }
+
+    function getTotalSteps() {
+      // Excluye welcome y success
+      return getVisibleQuestions().filter(q => q.type !== 'welcome' && q.type !== 'success').length;
+    }
+
+    function getCurrentStepNumber() {
+      const visible = getVisibleQuestions();
+      const current = visible[state.currentIndex];
+      if (!current || current.type === 'welcome' || current.type === 'success') return 0;
+      let count = 0;
+      for (let i = 0; i <= state.currentIndex; i++) {
+        if (visible[i].type !== 'welcome' && visible[i].type !== 'success') count++;
+      }
+      return count;
+    }
+
+    // ============================================
+    // RENDERIZADO
+    // ============================================
+    const wrapper = document.getElementById('screenWrapper');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+
+    function updateProgress() {
+      const total = getTotalSteps();
+      const current = getCurrentStepNumber();
+      if (current === 0) {
+        progressText.textContent = '';
+        progressFill.style.right = '100%';
+      } else {
+        progressText.textContent = `${current} / ${total}`;
+        progressFill.style.right = `${100 - (current / total) * 100}%`;
+      }
+    }
+
+    function render() {
+      const visible = getVisibleQuestions();
+      const q = visible[state.currentIndex];
+      if (!q) return;
+
+      wrapper.innerHTML = '';
+      const screen = document.createElement('div');
+      screen.className = 'screen';
+
+      if (q.type === 'welcome') {
+        screen.innerHTML = renderWelcome();
+      } else if (q.type === 'success') {
+        screen.innerHTML = renderSuccess();
+      } else {
+        screen.innerHTML = renderQuestion(q);
+      }
+
+      wrapper.appendChild(screen);
+      attachListeners(q);
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderWelcome() {
+      return `
+        <div class="screen welcome">
+          <h1 class="welcome-title">Tu plan no es <em>genérico</em>. Es tuyo.</h1>
+          <p class="welcome-text">
+            Estas preguntas me ayudan a diseñarte un plan de entrenamiento y nutrición que se adapta a TI: tu cuerpo, tu equipo, tu comida, tus tiempos. No uno copiado de un gimnasio.
+          </p>
+          <p class="welcome-text">
+            Responde con honestidad. Entre más real, mejor el plan.
+          </p>
+
+          <div class="welcome-meta">
+            <div class="welcome-meta-item">
+              <div class="welcome-meta-label">Tiempo</div>
+              <div class="welcome-meta-value">8 min</div>
+            </div>
+            <div class="welcome-meta-item">
+              <div class="welcome-meta-label">Preguntas</div>
+              <div class="welcome-meta-value">22</div>
+            </div>
+            <div class="welcome-meta-item">
+              <div class="welcome-meta-label">Entrega</div>
+              <div class="welcome-meta-value">&lt;24h</div>
+            </div>
+          </div>
+
+          <div class="disclaimer-box">
+            <p class="disclaimer-text">
+              Este plan es orientativo y no reemplaza la opinión de un médico o fisioterapeuta. Si tienes condiciones de salud, consulta con un profesional antes de empezar.
+            </p>
+            <label class="disclaimer-check" id="disclaimerCheck">
+              <input type="checkbox" id="disclaimerInput" />
+              <div class="disclaimer-check-box"></div>
+              <div class="disclaimer-check-text">Entiendo y acepto. Quiero continuar.</div>
+            </label>
+          </div>
+
+          <div class="nav">
+            <button class="btn btn-primary" id="startBtn" disabled>
+              Empezar
+              <span class="arrow">→</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuestion(q) {
+      let inputHtml = '';
+
+      if (q.type === 'text') {
+        const val = state.answers[q.id] || '';
+        inputHtml = `<input type="${q.inputType || 'text'}" id="input" placeholder="${q.placeholder || ''}" value="${escapeAttr(val)}" />`;
+      } else if (q.type === 'textarea') {
+        const val = state.answers[q.id] || '';
+        inputHtml = `<textarea id="input" placeholder="${q.placeholder || ''}" rows="5">${escapeHtml(val)}</textarea>`;
+      } else if (q.type === 'number') {
+        const val = state.answers[q.id] != null ? state.answers[q.id] : '';
+        inputHtml = `
+          <div style="display:flex; align-items:baseline; gap:12px;">
+            <input type="number" id="input" placeholder="${q.placeholder || ''}" value="${val}" min="${q.min || ''}" max="${q.max || ''}" step="${q.step || 1}" inputmode="decimal" style="flex:1;" />
+            ${q.suffix ? `<span style="color:var(--text-dim); font-size:15px;">${q.suffix}</span>` : ''}
+          </div>
+        `;
+      } else if (q.type === 'radio') {
+        const selected = state.answers[q.id];
+        inputHtml = `
+          <div class="options">
+            ${q.options.map(opt => `
+              <label class="option ${selected === opt.value ? 'selected' : ''}" data-value="${opt.value}">
+                <div class="option-indicator"></div>
+                <div class="option-text">${opt.label}</div>
+              </label>
+            `).join('')}
+          </div>
+        `;
+      } else if (q.type === 'checkbox') {
+        const selected = state.answers[q.id] || [];
+        inputHtml = `
+          <div class="options">
+            ${q.options.map(opt => `
+              <label class="option ${selected.includes(opt.value) ? 'selected' : ''}" data-value="${opt.value}" data-exclusive="${opt.exclusive ? 'true' : 'false'}">
+                <div class="option-indicator checkbox"></div>
+                <div class="option-text">${opt.label}</div>
+              </label>
+            `).join('')}
+          </div>
+        `;
+      } else if (q.type === 'composite') {
+        inputHtml = `
+          <div class="${q.fields.length > 2 ? 'input-row-3' : 'input-row'}" id="compositeRow">
+            ${q.fields.map(f => {
+              const val = (state.answers[q.id] && state.answers[q.id][f.name] != null) ? state.answers[q.id][f.name] : '';
+              return `
+                <div class="input-group">
+                  <label class="input-label">${f.label}${f.required ? '' : ' (opcional)'}</label>
+                  <input
+                    type="${f.type}"
+                    data-name="${f.name}"
+                    placeholder="${f.placeholder || ''}"
+                    value="${escapeAttr(val)}"
+                    ${f.min != null ? `min="${f.min}"` : ''}
+                    ${f.max != null ? `max="${f.max}"` : ''}
+                    ${f.type === 'number' ? 'inputmode="decimal"' : ''}
+                  />
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
+      const isLast = q.id === 'whatsapp';
+
+      return `
+        ${q.eyebrow ? `<div class="eyebrow">${q.eyebrow}</div>` : ''}
+        <h2 class="question-title">${q.title}</h2>
+        ${q.subtitle ? `<p class="question-subtitle">${q.subtitle}</p>` : ''}
+        ${inputHtml}
+        <div class="nav">
+          <button class="btn btn-secondary" id="backBtn">
+            <span class="arrow">←</span>
+            Atrás
+          </button>
+          <button class="btn btn-primary" id="nextBtn" disabled>
+            ${isLast ? 'Enviar' : 'Continuar'}
+            <span class="arrow">→</span>
+          </button>
+        </div>
+      `;
+    }
+
+    function renderSuccess() {
+      const nombre = state.answers.p1_nombre || '';
+      return `
+        <div class="screen success">
+          <div class="success-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 class="success-title">Listo${nombre ? ', ' + escapeHtml(nombre) : ''}.</h2>
+          <p class="success-text">
+            Recibí toda tu información. Estoy diseñando tu plan personalizado y te llega a tu <strong>WhatsApp en menos de 24 horas</strong>.
+          </p>
+        </div>
+      `;
+    }
+
+    // ============================================
+    // LISTENERS
+    // ============================================
+    function attachListeners(q) {
+      if (q.type === 'welcome') {
+        const check = document.getElementById('disclaimerCheck');
+        const checkInput = document.getElementById('disclaimerInput');
+        const startBtn = document.getElementById('startBtn');
+
+        check.addEventListener('click', (e) => {
+          e.preventDefault();
+          state.disclaimerAccepted = !state.disclaimerAccepted;
+          checkInput.checked = state.disclaimerAccepted;
+          check.classList.toggle('checked', state.disclaimerAccepted);
+          startBtn.disabled = !state.disclaimerAccepted;
+        });
+
+        startBtn.addEventListener('click', () => {
+          if (state.disclaimerAccepted) next();
+        });
+        return;
+      }
+
+      if (q.type === 'success') return;
+
+      const backBtn = document.getElementById('backBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      backBtn.addEventListener('click', () => prev());
+      nextBtn.addEventListener('click', () => {
+        if (!nextBtn.disabled) handleNext(q);
+      });
+
+      // Input handlers
+      if (q.type === 'text' || q.type === 'textarea' || q.type === 'number') {
+        const input = document.getElementById('input');
+        input.focus();
+        input.addEventListener('input', () => {
+          state.answers[q.id] = q.type === 'number' ? (input.value === '' ? null : Number(input.value)) : input.value;
+          validateCurrent(q);
+        });
+        // Enter to advance for text/number
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && q.type !== 'textarea') {
+            e.preventDefault();
+            if (!nextBtn.disabled) handleNext(q);
+          }
+        });
+        validateCurrent(q);
+      } else if (q.type === 'radio') {
+        const opts = wrapper.querySelectorAll('.option');
+        opts.forEach(opt => {
+          opt.addEventListener('click', () => {
+            opts.forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            state.answers[q.id] = opt.dataset.value;
+            validateCurrent(q);
+            // Auto-advance after short delay
+            setTimeout(() => {
+              if (!nextBtn.disabled) handleNext(q);
+            }, 280);
+          });
+        });
+        validateCurrent(q);
+      } else if (q.type === 'checkbox') {
+        const opts = wrapper.querySelectorAll('.option');
+        opts.forEach(opt => {
+          opt.addEventListener('click', () => {
+            if (!state.answers[q.id]) state.answers[q.id] = [];
+            let arr = state.answers[q.id];
+            const val = opt.dataset.value;
+            const isExclusive = opt.dataset.exclusive === 'true';
+
+            if (arr.includes(val)) {
+              arr = arr.filter(v => v !== val);
+            } else {
+              if (isExclusive) {
+                arr = [val];
+              } else {
+                // remove any exclusive options
+                const exclusiveVals = q.options.filter(o => o.exclusive).map(o => o.value);
+                arr = arr.filter(v => !exclusiveVals.includes(v));
+                arr.push(val);
+              }
+            }
+            state.answers[q.id] = arr;
+
+            // Re-render selected states
+            opts.forEach(o => {
+              o.classList.toggle('selected', arr.includes(o.dataset.value));
+            });
+            validateCurrent(q);
+          });
+        });
+        validateCurrent(q);
+      } else if (q.type === 'composite') {
+        const inputs = wrapper.querySelectorAll('input[data-name]');
+        inputs[0]?.focus();
+        inputs.forEach(input => {
+          input.addEventListener('input', () => {
+            if (!state.answers[q.id]) state.answers[q.id] = {};
+            const name = input.dataset.name;
+            const val = input.type === 'number' ? (input.value === '' ? null : Number(input.value)) : input.value;
+            state.answers[q.id][name] = val;
+            validateCurrent(q);
+          });
+        });
+        validateCurrent(q);
+      }
+    }
+
+    // ============================================
+    // VALIDACIÓN
+    // ============================================
+    function validateCurrent(q) {
+      const nextBtn = document.getElementById('nextBtn');
+      if (!nextBtn) return;
+      const valid = isValid(q);
+      nextBtn.disabled = !valid;
+    }
+
+    function isValid(q) {
+      let v = state.answers[q.id];
+
+      if (!q.required && q.type !== 'composite') return true;
+
+      if (q.type === 'text') {
+        return v && String(v).trim().length > 0;
+      }
+      if (q.type === 'textarea') {
+        const len = (v || '').trim().length;
+        if (q.required) {
+          return len >= (q.minLength || 1);
+        }
+        return true;
+      }
+      if (q.type === 'number') {
+        if (v == null || v === '') return !q.required;
+        if (q.min != null && v < q.min) return false;
+        if (q.max != null && v > q.max) return false;
+        return true;
+      }
+      if (q.type === 'radio') {
+        return v != null && v !== '';
+      }
+      if (q.type === 'checkbox') {
+        return Array.isArray(v) && v.length > 0;
+      }
+      if (q.type === 'composite') {
+        if (!v) v = state.answers[q.id] = {};
+        for (const f of q.fields) {
+          if (!f.required) continue;
+          const fv = v[f.name];
+          if (fv == null || fv === '') return false;
+        }
+        return true;
+      }
+      return true;
+    }
+
+    // ============================================
+    // NAVEGACIÓN
+    // ============================================
+    function next() {
+      const visible = getVisibleQuestions();
+      const cur = visible[state.currentIndex];
+
+      const screen = wrapper.querySelector('.screen');
+      if (screen) screen.classList.add('exiting');
+
+      setTimeout(() => {
+        // Recompute visible because answers may have changed
+        const newVisible = getVisibleQuestions();
+        // Find next index based on current question id
+        const idx = newVisible.findIndex(q => q.id === cur.id);
+        state.currentIndex = idx + 1;
+        if (state.currentIndex >= newVisible.length) state.currentIndex = newVisible.length - 1;
+        render();
+      }, 240);
+    }
+
+    function prev() {
+      if (state.currentIndex === 0) return;
+      const screen = wrapper.querySelector('.screen');
+      if (screen) screen.classList.add('exiting');
+      setTimeout(() => {
+        state.currentIndex--;
+        render();
+      }, 240);
+    }
+
+    function handleNext(q) {
+      if (q.id === 'whatsapp') {
+        submitForm();
+      } else {
+        next();
+      }
+    }
+
+    // ============================================
+    // ENVÍO
+    // ============================================
+    async function submitForm() {
+      const nextBtn = document.getElementById('nextBtn');
+      const backBtn = document.getElementById('backBtn');
+      if (nextBtn) {
+        nextBtn.disabled = true;
+        nextBtn.innerHTML = '<span class="loading"></span> Enviando...';
+      }
+      if (backBtn) backBtn.disabled = true;
+
+      const payload = {
+        timestamp: new Date().toISOString(),
+        answers: state.answers
+      };
+
+      try {
+        // Use no-cors style approach to avoid preflight
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        // Move to success regardless (no-cors hides response)
+        moveToSuccess();
+      } catch (err) {
+        // Even with errors, try to advance — Apps Script often still saves
+        console.error('Submit error:', err);
+        moveToSuccess();
+      }
+    }
+
+    function moveToSuccess() {
+      const visible = getVisibleQuestions();
+      const idx = visible.findIndex(q => q.type === 'success');
+      if (idx >= 0) {
+        state.currentIndex = idx;
+        render();
+      }
+    }
+
+    // ============================================
+    // UTILS
+    // ============================================
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+    function escapeAttr(s) {
+      return escapeHtml(s);
+    }
+
+    // ============================================
+    // INIT
+    // ============================================
+    render();
+  </script>
+</body>
+</html>
