@@ -950,7 +950,7 @@
         type: 'composite',
         eyebrow: 'Tu nivel',
         title: '¿Qué puedes hacer hoy físicamente?',
-        subtitle: 'Aproximado. Deja en blanco lo que no sepas o no aplique.',
+        subtitle: 'Aproximado. En flexiones y dominadas, pon el máximo de repeticiones seguidas que logras hoy. En los pesos (press, sentadilla, peso muerto), pon el peso que puedes levantar con buena técnica para unas 5 a 8 repeticiones — NO una sola repetición forzada al máximo. Deja en blanco lo que no sepas.',
         showIf: (answers) => ['3-6m', '6m-1a', '1-2a', '+2a'].includes(answers.p8_experiencia),
         required: false,
         fields: [
@@ -972,7 +972,7 @@
           },
           {
             name: 'press_banca',
-            label: 'Press banca máx (kg)',
+            label: 'Press banca (kg, para 5-8 reps)',
             type: 'number',
             placeholder: 'opcional',
             min: 0,
@@ -980,7 +980,7 @@
           },
           {
             name: 'sentadilla',
-            label: 'Sentadilla máx (kg)',
+            label: 'Sentadilla (kg, para 5-8 reps)',
             type: 'number',
             placeholder: 'opcional',
             min: 0,
@@ -988,7 +988,7 @@
           },
           {
             name: 'peso_muerto',
-            label: 'Peso muerto máx (kg)',
+            label: 'Peso muerto (kg, para 5-8 reps)',
             type: 'number',
             placeholder: 'opcional',
             min: 0,
