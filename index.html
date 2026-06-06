@@ -795,6 +795,27 @@
         ]
       },
 
+      // ----- P3.7: MÚSCULOS A PRIORIZAR -----
+      {
+        id: 'p3_7_musculos',
+        type: 'checkbox',
+        eyebrow: 'Tu enfoque',
+        title: '¿Hay algún músculo o zona que quieras priorizar?',
+        subtitle: 'Priorizar es darle un poco más de atención, sin descuidar el resto. Elige máximo 2 para que de verdad funcione.',
+        required: true,
+        maxSelect: 2,
+        options: [
+          { value: 'equilibrado', label: 'Quiero desarrollo equilibrado, sin prioridad especial', exclusive: true },
+          { value: 'pecho', label: 'Pecho' },
+          { value: 'espalda', label: 'Espalda' },
+          { value: 'brazos', label: 'Brazos (bíceps y tríceps)' },
+          { value: 'hombros', label: 'Hombros' },
+          { value: 'piernas', label: 'Piernas (cuádriceps y femoral)' },
+          { value: 'gluteos', label: 'Glúteos' },
+          { value: 'core', label: 'Abdomen / core' }
+        ]
+      },
+
       // ----- P4: SEXO BIOLÓGICO -----
       {
         id: 'p4_sexo',
@@ -1497,6 +1518,10 @@
                 // remove any exclusive options
                 const exclusiveVals = q.options.filter(o => o.exclusive).map(o => o.value);
                 arr = arr.filter(v => !exclusiveVals.includes(v));
+                // enforce maxSelect if defined — ignore clicks beyond the limit
+                if (q.maxSelect && arr.length >= q.maxSelect) {
+                  return;
+                }
                 arr.push(val);
               }
             }
